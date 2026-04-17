@@ -1,5 +1,7 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
+const otpService = require('../services/otpService');
 
 // @desc    Register user
 // @route   POST /api/auth/signup
@@ -63,6 +65,81 @@ exports.getUsers = async (req, res, next) => {
     res.status(200).json({ success: true, count: users.length, data: users });
   } catch (err) {
     res.status(400).json({ success: false, error: err.message });
+  }
+};
+
+// @desc    Send OTP to phone
+// @route   POST /api/auth/send-otp
+// @access  Public
+exports.sendOTP = async (req, res, next) => {
+  try {
+    const { phone } = req.body;
+
+    if (!phone) {
+      return res.status(400).json({ success: false, error: 'Please provide a phone number' });
+    }
+
+    // 1. Generate OTP
+    const otp = otpService.generateOTP();
+
+    // 2. Save OTP to DB
+    await otpService.saveOTP(phone, otp);
+
+    // 3. Send SMS via Notification Service
+    try {
+      await axios.post('http://localhost:5000/api/send-sms', {
+        to: phone,
+        message: `Your Chardho Go verification code is: ${otp}`
+      });
+      
+      res.status(200).json({ success: true, message: 'OTP sent successfully' });
+    } catch (smsErr) {
+      console.error('Notification Service Error:', smsErr.message);
+      // Even if SMS fails in dev, we return success so user can check logs for the OTP
+      res.status(200).json({ 
+        success: true, 
+        message: 'OTP generated (SMS service simulation)',
+        debugOtp: otp // Included for easier testing if Twilio fails
+      });
+    }
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+// @desc    Verify OTP and Login/Signup
+// @route   POST /api/auth/verify-otp
+// @access  Public
+exports.verifyOTP = async (req, res, next) => {
+  try {
+    const { phone, otp } = req.body;
+
+    if (!phone || !otp) {
+      return res.status(400).json({ success: false, error: 'Please provide phone and OTP' });
+    }
+
+    // 1. Verify OTP
+    const isValid = await otpService.verifyOTP(phone, otp);
+
+    if (!isValid) {
+      return res.status(401).json({ success: false, error: 'Invalid or expired OTP' });
+    }
+
+    // 2. Find or Create User
+    let user = await User.findOne({ phone });
+
+    if (!user) {
+      // Create new user if doesn't exist (Auto-signup)
+      user = await User.create({
+        phone,
+        role: 'user' // Default role
+      });
+    }
+
+    sendTokenResponse(user, 200, res);
+  } catch (err) {
+    console.error('Verify OTP Error:', err);
+    res.status(500).json({ success: false, error: err.message });
   }
 };
 

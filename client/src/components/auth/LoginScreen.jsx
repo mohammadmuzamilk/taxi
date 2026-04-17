@@ -30,6 +30,11 @@ const LoginScreen = ({ onLoginSuccess }) => {
 
       if (data.success) {
         setStep('otp');
+        if (data.debugOtp) {
+          console.log('--- DEBUG OTP REVEALED ---', data.debugOtp);
+          // Auto-fill OTP in dev mode for easy testing
+          setOtp(data.debugOtp.split(''));
+        }
       } else {
         setPhoneError(data.error || 'Failed to send OTP.');
       }
@@ -73,9 +78,9 @@ const LoginScreen = ({ onLoginSuccess }) => {
       const response = await fetch('http://localhost:5001/api/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           phone: `+91${phone}`,
-          otp: otpString 
+          otp: otpString
         })
       });
 
@@ -117,7 +122,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
                 </div>
                 <input
                   type="tel"
-                  placeholder="Phone Number"
+                  placeholder="+91 Phone Number"
                   value={phone}
                   onChange={(e) => {
                     const value = e.target.value.replace(/\D/g, '');
@@ -138,7 +143,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
               </div>
 
               {phoneError && (
-                <motion.p 
+                <motion.p
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="text-red-500 text-sm font-semibold ml-2 -mt-4"
@@ -152,14 +157,14 @@ const LoginScreen = ({ onLoginSuccess }) => {
                 className="w-full py-4 bg-zinc-900 text-white rounded-2xl font-bold text-lg flex items-center justify-center space-x-2 disabled:bg-zinc-200 transition-all active:scale-95 shadow-lg shadow-zinc-200"
               >
                 {isLoading ? (
-                  <motion.div 
+                  <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                     className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full"
                   />
                 ) : (
                   <>
-                    <span>Continue</span>
+                    <span>Send OTP</span>
                     <ChevronRight size={20} />
                   </>
                 )}
@@ -220,7 +225,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
                 className="w-full py-4 bg-zinc-900 text-white rounded-2xl font-bold text-lg flex items-center justify-center space-x-2 disabled:bg-zinc-200 transition-all active:scale-95 shadow-xl shadow-zinc-200"
               >
                 {isLoading ? (
-                  <motion.div 
+                  <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                     className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full"
