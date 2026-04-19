@@ -12,12 +12,12 @@ const PORT = process.env.PORT || 8000;
 
 // Configuration for service URLs
 const services = {
-  auth: process.env.AUTH_SERVICE_URL || 'http://localhost:5001',
-  user: process.env.USER_SERVICE_URL || 'http://localhost:5002',
-  admin: process.env.ADMIN_SERVICE_URL || 'http://localhost:5003',
-  driver: process.env.DRIVER_SERVICE_URL || 'http://localhost:5004',
-  notification: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:5000',
-  ride: process.env.RIDE_SERVICE_URL || 'http://localhost:5005'
+  auth: process.env.AUTH_SERVICE_URL || 'http://auth-service.railway.internal:5001',
+  user: process.env.USER_SERVICE_URL || 'http://user-service.railway.internal:5002',
+  admin: process.env.ADMIN_SERVICE_URL || 'http://admin-service.railway.internal:5003',
+  driver: process.env.DRIVER_SERVICE_URL || 'http://driver-service.railway.internal:5004',
+  notification: process.env.NOTIFICATION_SERVICE_URL || 'http://notification-service.railway.internal:5000',
+  ride: process.env.RIDE_SERVICE_URL || 'http://ride-service.railway.internal:5005'
 };
 
 // Route definitions
@@ -30,7 +30,12 @@ app.use('/api/users', createProxyMiddleware({ target: services.user, changeOrigi
 app.use('/api/admins', createProxyMiddleware({ target: services.admin, changeOrigin: true }));
 app.use('/api/drivers', createProxyMiddleware({ target: services.driver, changeOrigin: true }));
 app.use('/api/notifications', createProxyMiddleware({ target: services.notification, changeOrigin: true }));
-app.use('/api/rides', createProxyMiddleware({ target: services.ride, changeOrigin: true, ws: true }));
+app.use('/api/rides', createProxyMiddleware({ 
+  target: services.ride, 
+  changeOrigin: true, 
+  ws: true,
+  pathRewrite: { '^/api/rides': '' }
+}));
 
 app.get('/health', (req, res) => res.status(200).json({ status: 'API Gateway is Healthy' }));
 

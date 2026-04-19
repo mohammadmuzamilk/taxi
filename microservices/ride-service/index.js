@@ -27,7 +27,7 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/chardho_go_
   .catch(err => console.error('DB Connection Error:', err));
 
 // Routes
-app.use('/api/rides', rideRoutes);
+app.use('/', rideRoutes);
 
 // --- SOCKET.IO REAL-TIME LOGIC ---
 const drivers = new Map(); // Store online drivers: userId -> socketId + data
