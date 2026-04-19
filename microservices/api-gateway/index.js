@@ -16,7 +16,8 @@ const services = {
   user: process.env.USER_SERVICE_URL || 'http://localhost:5002',
   admin: process.env.ADMIN_SERVICE_URL || 'http://localhost:5003',
   driver: process.env.DRIVER_SERVICE_URL || 'http://localhost:5004',
-  notification: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:5000'
+  notification: process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:5000',
+  ride: process.env.RIDE_SERVICE_URL || 'http://localhost:5005'
 };
 
 // Route definitions
@@ -25,6 +26,7 @@ app.use('/api/users', createProxyMiddleware({ target: services.user, changeOrigi
 app.use('/api/admins', createProxyMiddleware({ target: services.admin, changeOrigin: true }));
 app.use('/api/drivers', createProxyMiddleware({ target: services.driver, changeOrigin: true }));
 app.use('/api/notifications', createProxyMiddleware({ target: services.notification, changeOrigin: true }));
+app.use('/api/rides', createProxyMiddleware({ target: services.ride, changeOrigin: true }));
 
 app.get('/health', (req, res) => res.status(200).json({ status: 'API Gateway is Healthy' }));
 

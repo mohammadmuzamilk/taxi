@@ -33,12 +33,17 @@ start "ADMIN-SERVICE" cmd /k "cd /d "%~dp0admin-service" && npm run dev"
 timeout /t 2 /nobreak >nul
 
 :: Start Notification Service
-echo [6/6] Starting Notification Service...
+echo [6/7] Starting Notification Service...
 start "NOTIFICATION-SERVICE" cmd /k "cd /d "%~dp0notification-service" && npm run dev"
+timeout /t 2 /nobreak >nul
+
+:: Start Ride Service
+echo [7/7] Starting Ride Service...
+start "RIDE-SERVICE" cmd /k "cd /d "%~dp0ride-service" && npm run dev"
 
 echo.
 echo ============================================
-echo    All 6 microservices launched!
+echo    All 7 microservices launched!
 echo ============================================
 echo.
 echo    1. API Gateway
@@ -47,6 +52,7 @@ echo    3. User Service
 echo    4. Driver Service
 echo    5. Admin Service
 echo    6. Notification Service
+echo    7. Ride Service
 echo.
 echo    Each service is running in its own window.
 echo    Close this window or press any key to exit.

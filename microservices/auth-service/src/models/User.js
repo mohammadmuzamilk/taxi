@@ -29,6 +29,8 @@ const userSchema = new mongoose.Schema({
     enum: ['user', 'driver', 'admin'],
     default: 'user'
   },
+  carModel: String,
+  regNumber: String,
   createdAt: {
     type: Date,
     default: Date.now

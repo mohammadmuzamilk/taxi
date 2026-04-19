@@ -108,11 +108,9 @@ exports.sendOTP = async (req, res, next) => {
 };
 
 // @desc    Verify OTP and Login/Signup
-// @route   POST /api/auth/verify-otp
-// @access  Public
 exports.verifyOTP = async (req, res, next) => {
   try {
-    const { phone, otp } = req.body;
+    const { phone, otp, role } = req.body;
 
     if (!phone || !otp) {
       return res.status(400).json({ success: false, error: 'Please provide phone and OTP' });
@@ -132,7 +130,7 @@ exports.verifyOTP = async (req, res, next) => {
       // Create new user if doesn't exist (Auto-signup)
       user = await User.create({
         phone,
-        role: 'user' // Default role
+        role: role || 'user' // Use provided role or default to 'user'
       });
     }
 
@@ -140,6 +138,44 @@ exports.verifyOTP = async (req, res, next) => {
   } catch (err) {
     console.error('Verify OTP Error:', err);
     res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+// @desc    Update current user profile
+// @route   PUT /api/auth/update-me
+// @access  Private
+exports.updateMe = async (req, res, next) => {
+  try {
+    const { name, email, carModel, regNumber } = req.body;
+    
+    // In a real app, you'd get user ID from the JWT (req.user.id)
+    // For this demo, let's assume phone is passed or use a specific identifier
+    const { phone } = req.body; 
+
+    if (!phone) {
+      return res.status(400).json({ success: false, error: 'Phone number required to update profile' });
+    }
+
+    const fieldsToUpdate = {};
+    if (name) fieldsToUpdate.name = name;
+    if (email) fieldsToUpdate.email = email;
+    // We could store vehicle info in a separate collection or sub-doc, 
+    // but for simplicity let's stick to the User model if it's there
+    if (carModel) fieldsToUpdate.carModel = carModel;
+    if (regNumber) fieldsToUpdate.regNumber = regNumber;
+
+    const user = await User.findOneAndUpdate({ phone }, fieldsToUpdate, {
+      new: true,
+      runValidators: true
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    res.status(200).json({ success: true, data: user });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
   }
 };
 
