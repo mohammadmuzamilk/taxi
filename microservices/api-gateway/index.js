@@ -12,12 +12,12 @@ const PORT = process.env.PORT || 8000;
 
 // Configuration for service URLs
 const services = {
-  auth: process.env.AUTH_SERVICE_URL || 'http://auth-service.railway.internal:5001',
-  user: process.env.USER_SERVICE_URL || 'http://user-service.railway.internal:5002',
-  admin: process.env.ADMIN_SERVICE_URL || 'http://admin-service.railway.internal:5003',
-  driver: process.env.DRIVER_SERVICE_URL || 'http://driver-service.railway.internal:5004',
-  notification: process.env.NOTIFICATION_SERVICE_URL || 'http://notification-service.railway.internal:5000',
-  ride: process.env.RIDE_SERVICE_URL || 'http://ride-service.railway.internal:5005'
+  auth: process.env.AUTH_SERVICE_URL || 'http://auth-service.railway.internal:8080',
+  user: process.env.USER_SERVICE_URL || 'http://user-service.railway.internal:8080',
+  admin: process.env.ADMIN_SERVICE_URL || 'http://admin-service.railway.internal:8080',
+  driver: process.env.DRIVER_SERVICE_URL || 'http://driver-service.railway.internal:8080',
+  notification: process.env.NOTIFICATION_SERVICE_URL || 'http://notification-service.railway.internal:8080',
+  ride: process.env.RIDE_SERVICE_URL || 'http://ride-service.railway.internal:8080'
 };
 
 // Route definitions
