@@ -87,7 +87,7 @@ exports.sendOTP = async (req, res, next) => {
 
     // 3. Send SMS via Notification Service
     try {
-      const notificationUrl = process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:5000';
+      const notificationUrl = process.env.NOTIFICATION_SERVICE_URL || 'http://notification-service.railway.internal:8080';
       await axios.post(`${notificationUrl}/api/send-sms`, {
         to: phone,
         message: `Your Chardho Go verification code is: ${otp}`
