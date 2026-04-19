@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  # --- API Gateway ---
+  api-gateway:
+    build: ./microservices/api-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - AUTH_SERVICE_URL=http://auth-service:5001
+      - USER_SERVICE_URL=http://user-service:5002
+      - ADMIN_SERVICE_URL=http://admin-service:5003
+      - DRIVER_SERVICE_URL=http://driver-service:5004
+      - NOTIFICATION_SERVICE_URL=http://notification-service:5000
+      - RIDE_SERVICE_URL=http://ride-service:5005
+    depends_on:
+      - auth-service
+      - user-service
+      - admin-service
+      - driver-service
+      - notification-service
+      - ride-service
+
+  # --- Backend Microservices ---
+  auth-service:
+    build: ./microservices/auth-service
+    ports:
+      - "5001:5001"
+    env_file: ./microservices/auth-service/.env
+    environment:
+      - PORT=5001
+
+  user-service:
+    build: ./microservices/user-service
+    ports:
+      - "5002:5002"
+    env_file: ./microservices/user-service/.env
+    environment:
+      - PORT=5002
+
+  admin-service:
+    build: ./microservices/admin-service
+    ports:
+      - "5003:5003"
+    env_file: ./microservices/admin-service/.env
+    environment:
+      - PORT=5003
+      - USER_SERVICE_URL=http://user-service:5002/api/users
+      - DRIVER_SERVICE_URL=http://driver-service:5004/api/drivers
+      - AUTH_SERVICE_URL=http://auth-service:5001/api/auth
+
+  driver-service:
+    build: ./microservices/driver-service
+    ports:
+      - "5004:5004"
+    env_file: ./microservices/driver-service/.env
+    environment:
+      - PORT=5004
+
+  ride-service:
+    build: ./microservices/ride-service
+    ports:
+      - "5005:5005"
+    environment:
+      - PORT=5005
+      # Since ride-service doesn't have an .env, we can pass MONGO_URI here or it will use default
+      - MONGO_URI=mongodb://muzamilmohammadk:AVwFnsXAZ75FThRZ@ac-ohbby91-shard-00-00.r2ah3ab.mongodb.net:27017,ac-ohbby91-shard-00-01.r2ah3ab.mongodb.net:27017,ac-ohbby91-shard-00-02.r2ah3ab.mongodb.net:27017/chardho_go_rides?ssl=true&replicaSet=atlas-kbpz9p-shard-0&authSource=admin&retryWrites=true&w=majority&appName=Cluster0
+
+  notification-service:
+    build: ./microservices/notification-service
+    ports:
+      - "5000:5000"
+    env_file: ./microservices/notification-service/.env
+    environment:
+      - PORT=5000
+
+  # --- Frontend Apps ---
+  client-web:
+    build:
+      context: ./client
+      args:
+        - VITE_API_BASE_URL=http://localhost:8000
+    ports:
+      - "3000:80"
+
+  admin-panel:
+    build:
+      context: ./admin
+      args:
+        - VITE_API_BASE_URL=http://localhost:8000
+    ports:
+      - "3001:80"
+
+  driver-app:
+    build:
+      context: ./drivers
+      args:
+        - VITE_API_BASE_URL=http://localhost:8000
+    ports:
+      - "3002:80"
+
+networks:
+  default:
+    name: taxi-network
