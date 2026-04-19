@@ -21,7 +21,11 @@ const services = {
 };
 
 // Route definitions
-app.use('/api/auth', createProxyMiddleware({ target: services.auth, changeOrigin: true }));
+app.use('/api/auth', createProxyMiddleware({ 
+  target: services.auth, 
+  changeOrigin: true,
+  pathRewrite: { '^/api/auth': '' }
+}));
 app.use('/api/users', createProxyMiddleware({ target: services.user, changeOrigin: true }));
 app.use('/api/admins', createProxyMiddleware({ target: services.admin, changeOrigin: true }));
 app.use('/api/drivers', createProxyMiddleware({ target: services.driver, changeOrigin: true }));

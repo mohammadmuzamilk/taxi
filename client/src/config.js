@@ -5,14 +5,13 @@ const hostname = window.location.hostname;
 // 1. Environment Variable (VITE_API_BASE_URL)
 // 2. Localhost fallback (if developing locally)
 // 3. Current domain fallback (will likely fail in prod without env var, but fixes protocol)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
-                    (hostname === 'localhost' || hostname === '127.0.0.1' 
-                     ? `http://${hostname}:8000` 
-                     : `${protocol}//${hostname}`);
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+if (!API_BASE_URL) {
+  throw new Error("VITE_API_BASE_URL is not defined");
+}
 
 console.log('--- ENV DEBUG ---');
-console.log('import.meta.env.VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
-console.log('Calculated API_BASE_URL:', API_BASE_URL);
+console.log('API_BASE_URL:', API_BASE_URL);
 console.log('-----------------');
 
 export const config = {

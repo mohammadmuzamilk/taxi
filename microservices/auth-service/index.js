@@ -23,7 +23,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // API Routes
-app.use('/api/auth', authRoutes);
+app.use('/', authRoutes);
 
 // Health Check
 app.get('/health', (req, res) => {
