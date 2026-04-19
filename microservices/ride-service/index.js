@@ -89,7 +89,7 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = 5005;
+const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
   console.log(`\n🚗 Ride Service & Sockets running on port ${PORT}`);
 });
