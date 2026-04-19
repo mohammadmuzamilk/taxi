@@ -67,7 +67,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
     setIsResending(true);
     setOtpError('');
     try {
-      const response = await fetch(`http://${window.location.hostname}:5001/api/auth/send-otp`, {
+      const response = await fetch(`${config.AUTH_SERVICE}/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: `+91${phone}` })
