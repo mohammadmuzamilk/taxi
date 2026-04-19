@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import LoginScreen from './LoginScreen';
 import UserSetup from './UserSetup';
 import DriverOnboarding from './DriverOnboarding';
+import { config } from '../../config';
 
 const AuthFlow = ({ onAuthComplete }) => {
   const [authState, setAuthState] = useState('login'); // login -> role-selection -> user-setup / driver-onboarding
@@ -25,7 +26,7 @@ const AuthFlow = ({ onAuthComplete }) => {
     
     try {
       // Store user details in MongoDB
-      const response = await fetch(`http://${window.location.hostname}:5001/api/auth/update-me`, {
+      const response = await fetch(`${config.AUTH_SERVICE}/update-me`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(finalData)

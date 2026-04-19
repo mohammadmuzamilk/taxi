@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Phone, Lock, ArrowLeft, Car, User } from 'lucide-react';
+import { config } from '../../config';
 
 const LoginScreen = ({ onLoginSuccess }) => {
   const [role, setRole] = useState('user'); // 'user' or 'driver'
@@ -33,7 +34,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
     setIsLoading(true);
     try {
       // 1. Call Auth Service to send OTP
-      const response = await fetch(`http://${window.location.hostname}:5001/api/auth/send-otp`, {
+      const response = await fetch(`${config.AUTH_SERVICE}/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone: `+91${phone}` })
@@ -123,7 +124,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
     setOtpError('');
 
     try {
-      const response = await fetch(`http://${window.location.hostname}:5001/api/auth/verify-otp`, {
+      const response = await fetch(`${config.AUTH_SERVICE}/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

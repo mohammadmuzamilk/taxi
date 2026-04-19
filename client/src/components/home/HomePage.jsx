@@ -12,8 +12,11 @@ import DriverStatusCard from './components/DriverStatusCard';
 import RideSelectionPanel from './components/RideSelectionPanel';
 import HeroSection from './components/HeroSection';
 import MapSelectionOverlay from './components/MapSelectionOverlay';
+import { config } from '../../config';
 
-const socket = io(`http://${window.location.hostname}:5005`);
+const socket = io(config.SOCKET_URL, {
+  path: config.SOCKET_PATH
+});
 
 const HomePage = ({ user, onLogout }) => {
   const [isSearching, setIsSearching] = useState(false);
@@ -81,7 +84,7 @@ const HomePage = ({ user, onLogout }) => {
     };
 
     try {
-      const response = await fetch(`http://${window.location.hostname}:5005/api/rides/request`, {
+      const response = await fetch(`${config.RIDE_SERVICE}/request`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(rideData)

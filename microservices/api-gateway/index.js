@@ -26,7 +26,7 @@ app.use('/api/users', createProxyMiddleware({ target: services.user, changeOrigi
 app.use('/api/admins', createProxyMiddleware({ target: services.admin, changeOrigin: true }));
 app.use('/api/drivers', createProxyMiddleware({ target: services.driver, changeOrigin: true }));
 app.use('/api/notifications', createProxyMiddleware({ target: services.notification, changeOrigin: true }));
-app.use('/api/rides', createProxyMiddleware({ target: services.ride, changeOrigin: true }));
+app.use('/api/rides', createProxyMiddleware({ target: services.ride, changeOrigin: true, ws: true }));
 
 app.get('/health', (req, res) => res.status(200).json({ status: 'API Gateway is Healthy' }));
 
