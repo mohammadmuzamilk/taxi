@@ -10,6 +10,11 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ||
                      ? `http://${hostname}:8000` 
                      : `${protocol}//${hostname}`);
 
+console.log('--- ENV DEBUG ---');
+console.log('import.meta.env.VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+console.log('Calculated API_BASE_URL:', API_BASE_URL);
+console.log('-----------------');
+
 export const config = {
   API_BASE_URL,
   GATEWAY_URL: API_BASE_URL,
