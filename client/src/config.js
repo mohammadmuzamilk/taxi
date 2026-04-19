@@ -1,4 +1,14 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:8000`;
+const protocol = window.location.protocol;
+const hostname = window.location.hostname;
+
+// Priority: 
+// 1. Environment Variable (VITE_API_BASE_URL)
+// 2. Localhost fallback (if developing locally)
+// 3. Current domain fallback (will likely fail in prod without env var, but fixes protocol)
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
+                    (hostname === 'localhost' || hostname === '127.0.0.1' 
+                     ? `http://${hostname}:8000` 
+                     : `${protocol}//${hostname}`);
 
 export const config = {
   API_BASE_URL,
