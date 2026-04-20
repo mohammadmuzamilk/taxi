@@ -225,9 +225,12 @@ exports.deleteUser = async (req, res, next) => {
 
 // Get token from model, create cookie and send response
 const sendTokenResponse = (user, statusCode, res) => {
-  // Create token
-  const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE
+  // Create token with fallbacks to prevent crashes if env vars are forgotten in Railway
+  const secret = process.env.JWT_SECRET || 'chardho_go_super_secret_fallback_key';
+  const expire = process.env.JWT_EXPIRE || '30d';
+  
+  const token = jwt.sign({ id: user._id, role: user.role }, secret, {
+    expiresIn: expire
   });
 
   res.status(statusCode).json({
