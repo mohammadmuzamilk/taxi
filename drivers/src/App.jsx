@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Car, MapPin, Navigation, Phone, 
-  User, Power, Star, 
+import {
+  Car, MapPin, Navigation, Phone,
+  User, Power, Star,
   X, Menu
 } from 'lucide-react';
 import { io } from 'socket.io-client';
@@ -59,11 +59,11 @@ const DEFAULT_POS = [28.6139, 77.2090]; // fallback: New Delhi
 
 // ============================================================================
 function App() {
-  const [isOnline, setIsOnline]           = useState(false);
-  const [activeRide, setActiveRide]       = useState(null);
+  const [isOnline, setIsOnline] = useState(false);
+  const [activeRide, setActiveRide] = useState(null);
   const [incomingRequest, setIncomingRequest] = useState(null);
-  const [status, setStatus]               = useState('idle');
-  const [driverPos, setDriverPos]         = useState(null); // [lat, lng]
+  const [status, setStatus] = useState('idle');
+  const [driverPos, setDriverPos] = useState(null); // [lat, lng]
   const [distanceToUser, setDistanceToUser] = useState(null); // metres
 
   const watchIdRef = useRef(null);
@@ -91,7 +91,7 @@ function App() {
           });
         }
       },
-      () => {},
+      () => { },
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 }
     );
     return () => {
@@ -326,11 +326,10 @@ function App() {
         <div className="absolute bottom-10 left-6 right-6 z-10">
           <button
             onClick={toggleOnline}
-            className={`w-full py-5 rounded-[28px] flex items-center justify-center space-x-4 transition-all duration-500 shadow-2xl ${
-              isOnline
+            className={`w-full py-5 rounded-[28px] flex items-center justify-center space-x-4 transition-all duration-500 shadow-2xl ${isOnline
                 ? 'bg-black/70 backdrop-blur-xl border border-white/10 text-white'
                 : 'bg-white text-zinc-950'
-            }`}
+              }`}
           >
             <div className={`p-2 rounded-full ${isOnline ? 'bg-red-500/15 text-red-400' : 'bg-emerald-500/15 text-emerald-600'}`}>
               <Power size={22} />
@@ -371,7 +370,7 @@ function App() {
                     <h2 className="text-xl font-black uppercase tracking-tighter italic">New Ride!</h2>
                     {distanceToUser != null && (
                       <p className="text-xs font-bold text-emerald-400 uppercase tracking-widest">
-                        {distanceToUser < 1000 
+                        {distanceToUser < 1000
                           ? `${distanceToUser} m away`
                           : `${(distanceToUser / 1000).toFixed(1)} km away`}
                       </p>

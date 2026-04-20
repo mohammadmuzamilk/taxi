@@ -6,7 +6,16 @@ const connectDB = require('./src/config/db');
 const authRoutes = require('./src/routes/authRoutes');
 
 // Connect to Database
-connectDB();
+connectDB().then(async () => {
+  try {
+    const mongoose = require('mongoose');
+    // Drop the problematic index if it exists
+    await mongoose.connection.collection('users').dropIndex('email_1');
+    console.log('✅ Cleared legacy email index');
+  } catch (e) {
+    // Ignore error if index doesn't exist
+  }
+});
 
 const app = express();
 app.use(cors()); // Enable CORS for all routes
