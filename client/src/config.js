@@ -1,25 +1,31 @@
-// VITE_API_URL must include https:// in Vercel env vars
-// Falls back to localhost:8000 for local development
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  import.meta.env.VITE_API_BASE_URL ||
-  'http://localhost:8000';
+// ─── API URL ──────────────────────────────────────────────────────────────────
+// MUST include https:// — set this in Vercel: Settings → Environment Variables
+// Key:   VITE_API_URL
+// Value: https://taxi-production-20c4.up.railway.app
+const API = import.meta.env.VITE_API_URL;
 
-console.log('--- ENV DEBUG ---');
-console.log('API_BASE_URL:', API_BASE_URL);
-console.log('-----------------');
+// ─── Startup check (visible in browser DevTools → Console) ────────────────────
+if (!API) {
+  console.error(
+    '❌ VITE_API_URL is not set!\n' +
+    'Go to Vercel → Project → Settings → Environment Variables\n' +
+    'and add:  VITE_API_URL = https://taxi-production-20c4.up.railway.app\n' +
+    'Then redeploy.'
+  );
+} else if (!API.startsWith('http')) {
+  console.error('❌ VITE_API_URL is missing https://  Current value:', API);
+} else {
+  console.log('✅ VITE_API_URL =', API);
+}
 
 export const config = {
-  API_BASE_URL,
-  GATEWAY_URL: API_BASE_URL,
-  // All services routed through the API gateway
-  AUTH_SERVICE: `${API_BASE_URL}/api/auth`,
-  USER_SERVICE: `${API_BASE_URL}/api/users`,
-  DRIVER_SERVICE: `${API_BASE_URL}/api/drivers`,
-  RIDE_SERVICE: `${API_BASE_URL}/api/rides`,
-  NOTIFICATION_SERVICE: `${API_BASE_URL}/api/notifications`,
-  // Socket.io configuration
-  SOCKET_URL: API_BASE_URL,
-  SOCKET_PATH: '/api/rides/socket.io'
+  API_BASE_URL: API,
+  GATEWAY_URL:  API,
+  AUTH_SERVICE:         `${API}/api/auth`,
+  USER_SERVICE:         `${API}/api/users`,
+  DRIVER_SERVICE:       `${API}/api/drivers`,
+  RIDE_SERVICE:         `${API}/api/rides`,
+  NOTIFICATION_SERVICE: `${API}/api/notifications`,
+  SOCKET_URL:  API,
+  SOCKET_PATH: '/api/rides/socket.io',
 };
-
