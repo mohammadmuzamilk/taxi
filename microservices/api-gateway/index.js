@@ -30,16 +30,17 @@ app.use('/api/users', createProxyMiddleware({ target: services.user, changeOrigi
 app.use('/api/admins', createProxyMiddleware({ target: services.admin, changeOrigin: true }));
 app.use('/api/drivers', createProxyMiddleware({ target: services.driver, changeOrigin: true }));
 app.use('/api/notifications', createProxyMiddleware({ target: services.notification, changeOrigin: true }));
-app.use('/api/rides', createProxyMiddleware({ 
+const rideProxy = createProxyMiddleware({ 
   target: services.ride, 
   changeOrigin: true, 
   ws: true,
   pathRewrite: { '^/api/rides': '' }
-}));
+});
+app.use('/api/rides', rideProxy);
 
 app.get('/health', (req, res) => res.status(200).json({ status: 'API Gateway is Healthy' }));
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`\n🌐 API Gateway running on port ${PORT}`);
   console.log(`Auth Service: ${services.auth}`);
   console.log(`User Service: ${services.user}`);
@@ -47,3 +48,5 @@ app.listen(PORT, () => {
   console.log(`Driver Service: ${services.driver}`);
   console.log(`Notification Service: ${services.notification}`);
 });
+
+server.on('upgrade', rideProxy.upgrade);

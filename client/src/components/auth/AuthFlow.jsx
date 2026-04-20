@@ -32,7 +32,8 @@ const AuthFlow = ({ onAuthComplete }) => {
         body: JSON.stringify(finalData)
       });
       
-      const result = await response.json();
+      const text = await response.text();
+      const result = text ? JSON.parse(text) : {};
       if (result.success) {
         onAuthComplete(result.data);
       } else {

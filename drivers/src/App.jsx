@@ -18,7 +18,8 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-const socket = io(`http://${window.location.hostname}:5005`);
+const API_URL = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:8000`;
+const socket = io(API_URL, { path: '/api/rides/socket.io' });
 
 // ─── Haversine Distance (metres) ────────────────────────────────────────────
 const haversineDistance = (lat1, lng1, lat2, lng2) => {
@@ -139,7 +140,7 @@ function App() {
   const acceptRide = async () => {
     const rideId = incomingRequest.rideId;
     try {
-      await fetch(`http://${window.location.hostname}:5005/api/rides/${rideId}/status`, {
+      await fetch(`${API_URL}/api/rides/${rideId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'accepted', driver: driverData }),

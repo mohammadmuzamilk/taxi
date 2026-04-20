@@ -40,7 +40,8 @@ const LoginScreen = ({ onLoginSuccess }) => {
         body: JSON.stringify({ phone: `+91${phone}` })
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {};
 
       if (data.success) {
         setStep('otp');
@@ -73,7 +74,8 @@ const LoginScreen = ({ onLoginSuccess }) => {
         body: JSON.stringify({ phone: `+91${phone}` })
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {};
 
       if (data.success) {
         setResendTimer(45);
@@ -134,7 +136,8 @@ const LoginScreen = ({ onLoginSuccess }) => {
         })
       });
 
-      const data = await response.json();
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {};
 
       if (data.success) {
         // Pass role, token and phone back
