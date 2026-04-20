@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
+const twilio = require('twilio');
 const otpService = require('../services/otpService');
 
 // @desc    Register user
@@ -85,22 +86,45 @@ exports.sendOTP = async (req, res, next) => {
     // 2. Save OTP to DB
     await otpService.saveOTP(phone, otp);
 
-    // 3. Send SMS via Notification Service
+    // 3. Send SMS via Twilio directly
     try {
-      const notificationUrl = process.env.NOTIFICATION_SERVICE_URL || 'http://notification-service.railway.internal:8080';
-      await axios.post(`${notificationUrl}/api/send-sms`, {
-        to: phone,
-        message: `Your Chardho Go verification code is: ${otp}`
+      const accountSid = process.env.TWILIO_ACCOUNT_SID;
+      const authToken = process.env.TWILIO_AUTH_TOKEN;
+      const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
+      
+      const useMockMode = process.env.TWILIO_MOCK_MODE === 'true' || !accountSid || !authToken;
+
+      if (useMockMode) {
+        console.log('\n--- MOCK SMS ---');
+        console.log(`To:      ${phone}`);
+        console.log(`Message: Your Chardho Go verification code is: ${otp}`);
+        console.log('----------------\n');
+        return res.status(200).json({ 
+          success: true, 
+          message: 'OTP generated (MOCK MODE)',
+          debugOtp: otp 
+        });
+      }
+
+      console.log(`Attempting to send SMS to ${phone} via Twilio...`);
+      const client = twilio(accountSid, authToken);
+      const response = await client.messages.create({
+        body: `Your Chardho Go verification code is: ${otp}`,
+        from: twilioPhoneNumber,
+        to: phone
       });
       
+      console.log(`SMS sent successfully! SID: ${response.sid}`);
       res.status(200).json({ success: true, message: 'OTP sent successfully' });
     } catch (smsErr) {
-      console.error('Notification Service Error:', smsErr.message);
-      // Even if SMS fails in dev, we return success so user can check logs for the OTP
+      console.error('Twilio Error:', smsErr.message);
+      
+      // If Twilio fails (e.g. unverified number on trial account), return debugOtp so user can still test
       res.status(200).json({ 
         success: true, 
-        message: 'OTP generated (SMS service simulation)',
-        debugOtp: otp // Included for easier testing if Twilio fails
+        message: 'OTP generated (but SMS failed - check logs)',
+        error: smsErr.message,
+        debugOtp: otp 
       });
     }
   } catch (err) {
