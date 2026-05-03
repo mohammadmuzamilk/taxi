@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 
 const MapBackground = () => {
@@ -11,6 +12,7 @@ const MapBackground = () => {
       y: Math.random() * 100,
       duration: 10 + Math.random() * 20
     }));
+    // eslint-disable-next-line
     setCars(initialCars);
   }, []);
 

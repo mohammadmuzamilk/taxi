@@ -8,6 +8,8 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    // NOTE: basicSsl intentionally removed — self-signed certs break SW registration.
+    // http://localhost is already a secure context for Geolocation + Service Workers.
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'pwa-192x192.png', 'pwa-512x512.png'],
@@ -34,4 +36,18 @@ export default defineConfig({
       }
     })
   ],
+  server: {
+    host: true,   // Expose on all LAN interfaces via plain HTTP
+    // https: true  ← REMOVED: self-signed SSL breaks Service Worker registration
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+        timeout: 30000,
+        proxyTimeout: 30000
+      }
+    }
+  }
 })

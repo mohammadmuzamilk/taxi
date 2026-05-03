@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, Car, User, CheckCircle2, ChevronRight, ArrowLeft, Shield, Banknote, MapPin, Contact } from 'lucide-react';
+import { Upload, Car, User, CheckCircle2, ChevronRight, ArrowLeft, Shield, Banknote, MapPin, Contact, Loader2 } from 'lucide-react';
+import { config } from '../../config';
 
 const steps = [
   { id: 1, title: 'Profile', icon: <User size={16} /> },
@@ -12,10 +14,43 @@ const steps = [
   { id: 7, title: 'Safety', icon: <Contact size={16} /> }
 ];
 
-const DriverOnboarding = ({ onComplete }) => {
+const FileUpload = ({ label, field, formData, handleFileChange }) => (
+  <label 
+    className={`relative border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center transition-colors cursor-pointer overflow-hidden ${
+        formData[field] ? 'border-yellow-500 bg-yellow-50' : 'border-zinc-200 bg-white hover:border-yellow-500 hover:bg-zinc-50'
+    }`}
+  >
+    <input 
+      type="file" 
+      accept="image/*"
+      className="hidden" 
+      onChange={(e) => handleFileChange(e, field)} 
+    />
+    
+    <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 z-10 ${
+        formData[field] ? 'bg-yellow-500 text-black' : 'bg-zinc-100 text-zinc-400'
+    }`}>
+        {formData[field] ? <CheckCircle2 size={24} /> : <Upload size={24} />}
+    </div>
+    
+    <p className="font-bold text-sm text-zinc-900 z-10 text-center px-2 line-clamp-1">
+      {formData[field] ? formData[field].name : `Upload ${label}`}
+    </p>
+    
+    {!formData[field] && (
+      <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 z-10 mt-1">
+        Max 800KB
+      </p>
+    )}
+  </label>
+);
+
+// eslint-disable-next-line no-unused-vars
+const DriverOnboarding = ({ onComplete, user, onBack }) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
+    name: user?.name || '',
     email: '',
     profilePhoto: null,
     
@@ -52,8 +87,65 @@ const DriverOnboarding = ({ onComplete }) => {
   });
 
   const handleNext = () => {
-    if (currentStep < 8) setCurrentStep(currentStep + 1);
-    else onComplete({ ...formData, verificationStatus: 'DOCUMENTS_UPLOADED' });
+    if (currentStep < 7) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append('fullName', formData.name);
+      formDataToSend.append('email', formData.email);
+      formDataToSend.append('phone', user?.phone || '');
+      formDataToSend.append('authId', user?.id || '');
+      
+      formDataToSend.append('licenseNumber', formData.licenseNumber);
+      formDataToSend.append('licenseExpiry', formData.licenseExpiry);
+      formDataToSend.append('licenseType', formData.licenseType);
+      if (formData.licenseFront) formDataToSend.append('licenseFront', formData.licenseFront);
+      if (formData.licenseBack) formDataToSend.append('licenseBack', formData.licenseBack);
+
+      formDataToSend.append('idType', formData.idType);
+      formDataToSend.append('idNumber', formData.idNumber);
+      if (formData.idFront) formDataToSend.append('idFront', formData.idFront);
+      if (formData.idBack) formDataToSend.append('idBack', formData.idBack);
+
+      formDataToSend.append('vehicleType', formData.vehicleType.charAt(0).toUpperCase() + formData.vehicleType.slice(1));
+      formDataToSend.append('vehicleModel', formData.vehicleModel);
+      formDataToSend.append('vehiclePlate', formData.vehiclePlate);
+      formDataToSend.append('vehicleYear', parseInt(formData.vehicleYear) || new Date().getFullYear());
+      if (formData.vehiclePhoto) formDataToSend.append('vehiclePhoto', formData.vehiclePhoto);
+
+      formDataToSend.append('bankAccount', formData.bankAccount);
+      formDataToSend.append('ifscCode', formData.ifscCode);
+
+      formDataToSend.append('city', formData.city);
+      formDataToSend.append('preferredArea', formData.preferredArea);
+
+      formDataToSend.append('selfDeclaration', formData.selfDeclaration);
+      formDataToSend.append('emergencyContact', formData.emergencyContact);
+
+      const response = await fetch(`${config.DRIVER_SERVICE}/register`, {
+        method: 'POST',
+        credentials: 'include',
+        // Note: Do NOT set Content-Type header when using FormData, the browser sets it with the correct boundary
+        body: formDataToSend
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setCurrentStep(8);
+      } else {
+        alert(data.error || data.message || 'Failed to submit application');
+      }
+    } catch (err) {
+      console.error('Submit Error:', err);
+      alert('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleBack = () => {
@@ -77,48 +169,19 @@ const DriverOnboarding = ({ onComplete }) => {
     }
   };
 
-  const FileUpload = ({ label, field }) => (
-    <label 
-      className={`relative border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center transition-colors cursor-pointer overflow-hidden ${
-          formData[field] ? 'border-yellow-500 bg-yellow-50' : 'border-zinc-200 bg-white hover:border-yellow-500 hover:bg-zinc-50'
-      }`}
-    >
-      <input 
-        type="file" 
-        accept="image/*"
-        className="hidden" 
-        onChange={(e) => handleFileChange(e, field)} 
-      />
-      
-      {/* If a file is uploaded, we can show a small preview background if we want, but keeping it simple below */}
-      <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 z-10 ${
-          formData[field] ? 'bg-yellow-500 text-black' : 'bg-zinc-100 text-zinc-400'
-      }`}>
-          {formData[field] ? <CheckCircle2 size={24} /> : <Upload size={24} />}
-      </div>
-      
-      <p className="font-bold text-sm text-zinc-900 z-10 text-center px-2 line-clamp-1">
-        {formData[field] ? formData[field].name : `Upload ${label}`}
-      </p>
-      
-      {!formData[field] && (
-        <p className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 z-10 mt-1">
-          Max 800KB
-        </p>
-      )}
-    </label>
-  );
-
   return (
     <div className="flex flex-col min-h-screen bg-zinc-50 px-6 pt-8 pb-10">
       {/* Top Header & Progress */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
-            <button onClick={handleBack} className={`w-10 h-10 flex items-center justify-center bg-white rounded-full text-zinc-600 shadow-sm ${currentStep === 1 || currentStep === 8 ? 'invisible' : ''}`}>
-                <ArrowLeft size={18} />
-            </button>
-            <div className="text-sm font-bold text-zinc-400 capitalize">Step {currentStep < 8 ? currentStep : 7} of 7</div>
-            <div className="w-10 h-10 invisible" />
+          <button 
+            onClick={currentStep === 1 ? onBack : handleBack} 
+            className={`w-10 h-10 flex items-center justify-center bg-white rounded-full text-zinc-600 shadow-sm ${currentStep === 8 ? 'invisible' : ''}`}
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <div className="text-sm font-bold text-zinc-400 capitalize">Step {currentStep < 8 ? currentStep : 7} of 7</div>
+          <div className="w-10 h-10 invisible" />
         </div>
 
         {currentStep < 8 && (
@@ -158,7 +221,7 @@ const DriverOnboarding = ({ onComplete }) => {
                     <span className="text-xs font-bold uppercase tracking-widest text-zinc-400 ml-1">Email (Optional)</span>
                     <input type="email" className="w-full mt-1 p-3 bg-white border border-zinc-200 rounded-xl focus:ring-2 focus:ring-yellow-500 outline-none" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} />
                 </label>
-                <FileUpload label="Profile Photo (Selfie)" field="profilePhoto" />
+                <FileUpload label="Profile Photo (Selfie)" field="profilePhoto" formData={formData} handleFileChange={handleFileChange} />
               </div>
             </motion.div>
           )}
@@ -189,8 +252,8 @@ const DriverOnboarding = ({ onComplete }) => {
                     </label>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <FileUpload label="License Front" field="licenseFront" />
-                  <FileUpload label="License Back" field="licenseBack" />
+                  <FileUpload label="License Front" field="licenseFront" formData={formData} handleFileChange={handleFileChange} />
+                  <FileUpload label="License Back" field="licenseBack" formData={formData} handleFileChange={handleFileChange} />
                 </div>
               </div>
             </motion.div>
@@ -215,8 +278,8 @@ const DriverOnboarding = ({ onComplete }) => {
                     <input type="text" className="w-full mt-1 p-3 bg-white border border-zinc-200 rounded-xl focus:ring-2 focus:ring-yellow-500 outline-none" value={formData.idNumber} onChange={(e) => setFormData({...formData, idNumber: e.target.value})} />
                 </label>
                 <div className="grid grid-cols-2 gap-4">
-                  <FileUpload label="ID Front" field="idFront" />
-                  <FileUpload label="ID Back" field="idBack" />
+                  <FileUpload label="ID Front" field="idFront" formData={formData} handleFileChange={handleFileChange} />
+                  <FileUpload label="ID Back" field="idBack" formData={formData} handleFileChange={handleFileChange} />
                 </div>
               </div>
             </motion.div>
@@ -252,7 +315,7 @@ const DriverOnboarding = ({ onComplete }) => {
                     <input type="text" className="w-full mt-1 p-3 bg-white border border-zinc-200 rounded-xl outline-none" value={formData.vehiclePlate} onChange={(e) => setFormData({...formData, vehiclePlate: e.target.value})} />
                 </label>
                 <div>
-                  <FileUpload label="Vehicle Photo" field="vehiclePhoto" />
+                  <FileUpload label="Vehicle Photo" field="vehiclePhoto" formData={formData} handleFileChange={handleFileChange} />
                 </div>
               </div>
             </motion.div>
@@ -354,18 +417,34 @@ const DriverOnboarding = ({ onComplete }) => {
       </div>
 
       {currentStep < 8 && (
-        <div className="mt-4">
+        <div className="mt-4 flex gap-3">
+          {currentStep > 1 && (
+            <button
+              onClick={handleBack}
+              className="flex-1 py-4 bg-white border border-zinc-200 text-zinc-600 rounded-2xl font-bold text-lg active:scale-95"
+            >
+              Back
+            </button>
+          )}
           <button
-            onClick={handleNext}
-            disabled={currentStep === 7 && !formData.selfDeclaration}
-            className={`w-full py-4 rounded-2xl font-bold text-lg flex items-center justify-center space-x-2 transition-all active:scale-95 ${
-              (currentStep === 7 && !formData.selfDeclaration) 
+            onClick={currentStep === 7 ? handleSubmit : handleNext}
+            disabled={loading || (currentStep === 7 && !formData.selfDeclaration)}
+            className={`rounded-2xl font-bold text-lg flex items-center justify-center space-x-2 transition-all active:scale-95 ${
+              currentStep === 1 ? 'w-full' : 'flex-2'
+            } ${
+              (currentStep === 7 && !formData.selfDeclaration) || loading
                 ? 'bg-zinc-200 text-zinc-400 cursor-not-allowed'
                 : 'bg-zinc-900 text-white shadow-xl shadow-zinc-200'
             }`}
           >
-            <span>{currentStep === 7 ? 'Submit Application' : 'Continue'}</span>
-            <ChevronRight size={20} />
+            {loading ? (
+              <Loader2 className="animate-spin" size={20} />
+            ) : (
+              <>
+                <span>{currentStep === 7 ? 'Submit Application' : 'Continue'}</span>
+                <ChevronRight size={20} />
+              </>
+            )}
           </button>
         </div>
       )}

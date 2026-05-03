@@ -1,0 +1,34 @@
+{
+  "name": "chardho-go-backend",
+  "version": "1.0.0",
+  "description": "Chardho Go — Microservices Backend (PostgreSQL/Prisma)",
+  "private": true,
+  "scripts": {
+    "db:generate": "npx prisma generate --schema=./prisma/schema.prisma",
+    "db:migrate": "npx prisma migrate dev --schema=./prisma/schema.prisma --name init",
+    "db:deploy": "npx prisma migrate deploy --schema=./prisma/schema.prisma",
+    "db:seed": "node ./prisma/seed.js",
+    "db:studio": "npx prisma studio --schema=./prisma/schema.prisma",
+    "db:reset": "npx prisma migrate reset --schema=./prisma/schema.prisma --force",
+    "install:all": "npm i && cd client-service && npm i && cd ../driver-service && npm i && cd ../admin-service && npm i && cd ../api-gateway && npm i && cd ../ride-service && npm i && cd ../tracking-service && npm i && cd ../notification-service && npm i"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "dotenv": "^16.4.5",
+    "jsonwebtoken": "^9.0.3",
+    "mongodb": "^6.5.0",
+    "axios": "^1.6.2"
+  },
+  "devDependencies": {
+    "prisma": "^5.14.0"
+  },
+  "prisma": {
+    "schema": "./prisma/schema.prisma",
+    "seed": "node ./prisma/seed.js"
+  },
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

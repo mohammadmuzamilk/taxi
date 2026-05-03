@@ -1,44 +1,57 @@
 import React, { useState } from 'react';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import LoginScreen from './LoginScreen';
 import UserSetup from './UserSetup';
 import DriverOnboarding from './DriverOnboarding';
 import { config } from '../../config';
 
-const AuthFlow = ({ onAuthComplete }) => {
-  const [authState, setAuthState] = useState('login'); // login -> role-selection -> user-setup / driver-onboarding
-  const [userData, setUserData] = useState(null);
+const AuthFlow = ({ onAuthComplete, initialUser }) => {
+  const [authState, setAuthState] = useState(() => {
+    if (!initialUser) return 'login';
+    return initialUser.role === 'driver' ? 'driver-onboarding' : 'user-setup';
+  });
+  const [userData, setUserData] = useState(initialUser);
 
   const handleLoginSuccess = (data) => {
-    // In a real app, check if user is returning or new
-    // For this demo, we assume new user to show the full flow
     setUserData(data);
-    if (data.role === 'user') {
-      setAuthState('user-setup');
-    } else {
+    
+    // If already onboarded, complete immediately
+    if (data.isOnboarded) {
+      onAuthComplete(data);
+      return;
+    }
+
+    // Otherwise, route to appropriate setup
+    if (data.role === 'driver') {
       setAuthState('driver-onboarding');
+    } else {
+      setAuthState('user-setup');
     }
   };
 
   const handleSetupComplete = async (data) => {
     const finalData = { ...userData, ...data };
-    console.log('Final Data to Save:', finalData);
-    
+
     try {
-      // Store user details in MongoDB
-      const response = await fetch(`${config.AUTH_SERVICE}/update-me`, {
+      // Update user profile — PUT /api/auth/me
+      const response = await fetch(`${config.AUTH_SERVICE}/me`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(finalData)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ name: finalData.name })
       });
-      
+
       const text = await response.text();
       const result = text ? JSON.parse(text) : {};
+
       if (result.success) {
-        onAuthComplete(result.data);
+        onAuthComplete({ ...finalData, ...result.data });
       } else {
-        console.error('Failed to save profile:', result.error);
-        onAuthComplete(finalData); // Fallback
+        // Fallback: proceed with local data even if server update fails
+        onAuthComplete(finalData);
       }
     } catch (err) {
       console.error('Error saving profile:', err);
@@ -57,12 +70,12 @@ const AuthFlow = ({ onAuthComplete }) => {
 
         {authState === 'user-setup' && (
           <motion.div key="user-setup" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }}>
-            <UserSetup onComplete={handleSetupComplete} />
+            <UserSetup onComplete={handleSetupComplete} user={userData} onBack={() => setAuthState('login')} />
           </motion.div>
         )}
         {authState === 'driver-onboarding' && (
           <motion.div key="driver-setup" initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }}>
-            <DriverOnboarding onComplete={handleSetupComplete} />
+            <DriverOnboarding onComplete={handleSetupComplete} user={userData} onBack={() => setAuthState('login')} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -71,3 +84,4 @@ const AuthFlow = ({ onAuthComplete }) => {
 };
 
 export default AuthFlow;
+

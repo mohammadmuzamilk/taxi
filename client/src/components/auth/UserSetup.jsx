@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
-import { User, Check } from 'lucide-react';
+import { User, Check, ArrowLeft } from 'lucide-react';
 
-const UserSetup = ({ onComplete }) => {
+const UserSetup = ({ onComplete, onBack }) => {
   const [name, setName] = useState('');
 
   const handleSubmit = (e) => {
@@ -11,7 +12,11 @@ const UserSetup = ({ onComplete }) => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-white px-6 pt-20 pb-10">
+    <div className="flex flex-col min-h-screen bg-white px-6 pt-16 pb-10">
+      <button onClick={onBack} className="mb-8 w-10 h-10 flex items-center justify-center bg-zinc-50 rounded-full text-zinc-600">
+        <ArrowLeft size={20} />
+      </button>
+
       <div className="mb-12">
         <h1 className="text-4xl font-black tracking-tighter mb-3">One last <span className="text-yellow-500">Step</span></h1>
         <p className="text-zinc-500 font-medium font-inter">What should we call you?</p>

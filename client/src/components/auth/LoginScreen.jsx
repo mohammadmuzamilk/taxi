@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronRight, Phone, Lock, ArrowLeft, Car, User } from 'lucide-react';
 import { config } from '../../config';
@@ -14,6 +15,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
   const [isResending, setIsResending] = useState(false);
   const [resendTimer, setResendTimer] = useState(45);
   const [canResend, setCanResend] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   useEffect(() => {
     let interval;
@@ -22,6 +24,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
         setResendTimer((prev) => prev - 1);
       }, 1000);
     } else if (resendTimer === 0) {
+      // eslint-disable-next-line
       setCanResend(true);
     }
     return () => clearInterval(interval);
@@ -48,9 +51,8 @@ const LoginScreen = ({ onLoginSuccess }) => {
         setResendTimer(45);
         setCanResend(false);
         setOtp(['', '', '', '', '', '']); // Clear field on entry
-        if (data.debugOtp) {
-          console.log('--- DEBUG OTP REVEALED ---', data.debugOtp);
-          // Auto-fill OTP in dev mode for easy testing
+        if (data.debugOtp && import.meta.env.DEV) {
+          // Auto-fill OTP in dev mode for easy testing (OTP not logged for security)
           setOtp(data.debugOtp.split(''));
         }
       } else {
@@ -80,8 +82,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
       if (data.success) {
         setResendTimer(45);
         setCanResend(false);
-        if (data.debugOtp) {
-          console.log('--- DEBUG OTP REVEALED ---', data.debugOtp);
+        if (data.debugOtp && import.meta.env.DEV) {
           setOtp(data.debugOtp.split(''));
         } else {
           setOtp(['', '', '', '', '', '']);
@@ -129,6 +130,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
       const response = await fetch(`${config.AUTH_SERVICE}/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           phone: `+91${phone}`,
           otp: otpString,
@@ -140,10 +142,12 @@ const LoginScreen = ({ onLoginSuccess }) => {
       const data = text ? JSON.parse(text) : {};
 
       if (data.success) {
-        // Pass role, token and phone back
-        onLoginSuccess({ role, token: data.token, phone: `+91${phone}` });
+        // Store token for localStorage-based requests
+        if (data.token) localStorage.setItem('userToken', data.token);
+        
+        onLoginSuccess({ role: data.role || role, id: data.userId, phone: `+91${phone}`, isOnboarded: data.isOnboarded });
       } else {
-        setOtpError(data.error || 'Invalid OTP. Please try again.');
+        setOtpError(data.error || data.message || 'Invalid OTP. Please try again.');
       }
     } catch (err) {
       console.error('OTP Verify Error:', err);
@@ -164,41 +168,55 @@ const LoginScreen = ({ onLoginSuccess }) => {
             exit={{ opacity: 0, x: -20 }}
             className="flex flex-col flex-1"
           >
-            <div className="mb-8 text-center">
-              <h1 className="text-3xl font-black tracking-tighter mb-2">Chardho <span className="text-yellow-500">Go</span></h1>
+            <div className="mb-8 text-center flex flex-col items-center">
+              <div className="w-24 h-24 mb-4 rounded-3xl overflow-hidden shadow-2xl border border-zinc-100 p-1 bg-linear-to-br from-yellow-400 to-orange-600 flex items-center justify-center">
+                {!imgError ? (
+                  <img 
+                    src="/pwa-192x192.png" 
+                    alt="Logo" 
+                    className="w-full h-full object-cover rounded-2xl" 
+                    onError={() => setImgError(true)}
+                  />
+                ) : (
+                  <span className="text-white font-black text-5xl">C</span>
+                )}
+              </div>
+              <h1 className="text-3xl font-black tracking-tighter mb-2 italic uppercase">
+                Chardho <span className="text-yellow-500">Go</span>
+              </h1>
               <p className="text-zinc-500 font-medium">Log in to your account</p>
             </div>
 
-            {/* Role Selection */}
-            <div className="flex p-1 bg-zinc-100 rounded-2xl mb-10 w-full">
-              <button
-                onClick={() => setRole('user')}
-                className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all flex items-center justify-center space-x-2 ${
-                  role === 'user' 
-                    ? 'bg-white text-zinc-900 shadow-sm' 
-                    : 'text-zinc-500'
-                }`}
-              >
-                <User size={18} />
-                <span>User</span>
-              </button>
-              <button
-                onClick={() => setRole('driver')}
-                className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all flex items-center justify-center space-x-2 ${
-                  role === 'driver' 
-                    ? 'bg-zinc-900 text-white shadow-sm' 
-                    : 'text-zinc-500'
-                }`}
-              >
-                <Car size={18} />
-                <span>Driver</span>
-              </button>
-            </div>
+              {/* Role Selection */}
+              <div className="flex p-1 bg-zinc-100 rounded-2xl mb-10 w-full">
+                <button
+                  onClick={() => setRole('user')}
+                  className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all flex items-center justify-center space-x-2 ${
+                    role === 'user' 
+                      ? 'bg-white text-zinc-900 shadow-sm' 
+                      : 'text-zinc-500'
+                  }`}
+                >
+                  <User size={18} />
+                  <span>User</span>
+                </button>
+                <button
+                  onClick={() => setRole('driver')}
+                  className={`flex-1 py-3 px-4 rounded-xl font-bold transition-all flex items-center justify-center space-x-2 ${
+                    role === 'driver' 
+                      ? 'bg-zinc-900 text-white shadow-sm' 
+                      : 'text-zinc-500'
+                  }`}
+                >
+                  <Car size={18} />
+                  <span>Driver</span>
+                </button>
+              </div>
 
             <form onSubmit={handlePhoneSubmit} className="flex flex-col space-y-6">
               <div className="relative group">
                 <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors ${
-                  role === 'user' ? 'text-zinc-400 group-focus-within:text-yellow-600' : 'text-zinc-400 group-focus-within:text-zinc-900'
+                  role === 'client' ? 'text-zinc-400 group-focus-within:text-yellow-600' : 'text-zinc-400 group-focus-within:text-zinc-900'
                 }`}>
                   <Phone size={20} />
                 </div>
@@ -283,7 +301,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
 
             <div className="mb-10">
               <h1 className="text-3xl font-black tracking-tighter mb-2">Verify Phone</h1>
-              <p className="text-zinc-500 font-medium whitespace-nowrap overflow-hidden text-ellipsis">Code sent to <span className="text-zinc-900">{phone}</span> as <span className="font-bold capitalize">{role}</span></p>
+              <p className="text-zinc-500 font-medium whitespace-nowrap overflow-hidden text-ellipsis">Code sent to <span className="text-zinc-900">{phone}</span> as <span className="font-bold capitalize">{role === 'user' ? 'User' : role}</span></p>
             </div>
 
             <form onSubmit={handleOtpSubmit} className="flex flex-col space-y-8">
@@ -332,7 +350,7 @@ const LoginScreen = ({ onLoginSuccess }) => {
                     <span>{isResending ? 'Resending...' : 'Resend Code'}</span>
                   </button>
                 ) : (
-                  <span className={`text-sm font-medium ${role === 'user' ? 'text-yellow-600/50' : 'text-zinc-500'}`}>
+                  <span className={`text-sm font-medium ${role === 'user' ? 'text-yellow-600/50' : 'text-zinc-50'}`}>
                     Resend Code in 0:{resendTimer.toString().padStart(2, '0')}
                   </span>
                 )}
